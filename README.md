@@ -83,3 +83,8 @@ Si el bucket contiene PDFs, vaciarlo primero o aplicar una politica de lifecycle
 - Logs de `AiMockLambda` mostrando latencias de 3 a 5 segundos.
 - Logs de `ErpMockLambda` agregados por segundo mostrando maximo 5 req/s.
 - Conteo de `APPROVED` y `REQUIRES_REVIEW` en DynamoDB/AuditLogTable.
+
+## Grupo de Arquitectura
+
+Valentina Calderon, Sebastian Nova & Santiago Jimenez
+
