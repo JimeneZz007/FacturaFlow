@@ -1,0 +1,5 @@
+# Configuración específica del proyecto FacturaFlow.
+
+project_root_markers = [".git"]
+project_doc_fallback_filenames = ["AGENTS.md"]
+project_doc_max_bytes = 65536
