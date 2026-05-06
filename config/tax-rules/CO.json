@@ -1,0 +1,6 @@
+{
+  "country": "CO",
+  "currency": "COP",
+  "allowedTaxRates": [0, 5, 19],
+  "defaultTaxRate": 19
+}

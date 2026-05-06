@@ -1,0 +1,37 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Usuario corporativo")
+System_Boundary(ff, "FacturaFlow") {
+  Container(api, "HTTP API", "API Gateway", "POST /uploads, /ai-mock, /erp-mock")
+  Container(ingest, "Ingest Lambda", "Node.js TypeScript", "Valida payload, guarda PDF, crea job y encola.")
+  Container(processor, "Processor Lambda", "Node.js TypeScript", "Extrae, valida y persiste factura.")
+  Container(ai, "AI Mock Lambda", "Node.js TypeScript", "Fixture con latencia 3-5s.")
+  Container(dispatcher, "ERP Dispatcher Lambda", "Node.js TypeScript", "Rate limit <= 5 req/s.")
+  Container(erp, "ERP Mock Lambda", "Node.js TypeScript", "Registra recepcion.")
+  ContainerDb(s3, "Documents Bucket", "S3", "PDFs cifrados.")
+  ContainerDb(jobs, "JobsTable", "DynamoDB", "Estado por trackingId.")
+  ContainerDb(invoices, "InvoicesTable", "DynamoDB", "Facturas procesadas.")
+  ContainerDb(audit, "AuditLogTable", "DynamoDB", "Eventos append-only.")
+  ContainerDb(erpLimit, "ErpRateLimitTable", "DynamoDB", "Rate limit global del ERP mock.")
+  ContainerQueue(pq, "ProcessingQueue", "SQS", "Backlog IA.")
+  ContainerQueue(eq, "ERPQueue", "SQS", "Backlog ERP.")
+}
+
+Rel(user, api, "POST /uploads", "HTTPS")
+Rel(api, ingest, "Invoca")
+Rel(ingest, s3, "Guarda PDF")
+Rel(ingest, jobs, "Crea job")
+Rel(ingest, audit, "DOCUMENT_INGESTED")
+Rel(ingest, pq, "Encola")
+Rel(pq, processor, "Dispara")
+Rel(processor, ai, "Invoke")
+Rel(processor, invoices, "Guarda")
+Rel(processor, jobs, "Actualiza")
+Rel(processor, audit, "Eventos")
+Rel(processor, eq, "Encola aprobadas")
+Rel(eq, dispatcher, "Dispara")
+Rel(dispatcher, erp, "Invoke <= 5 req/s")
+Rel(erp, erpLimit, "Cuenta recepciones por segundo")
+Rel(dispatcher, audit, "ERP_DISPATCHED/FAILED")
+@enduml

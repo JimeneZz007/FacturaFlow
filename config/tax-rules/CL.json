@@ -1,0 +1,6 @@
+{
+  "country": "CL",
+  "currency": "CLP",
+  "allowedTaxRates": [0, 19],
+  "defaultTaxRate": 19
+}

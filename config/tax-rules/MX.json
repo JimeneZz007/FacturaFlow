@@ -1,0 +1,6 @@
+{
+  "country": "MX",
+  "currency": "MXN",
+  "allowedTaxRates": [0, 8, 16],
+  "defaultTaxRate": 16
+}

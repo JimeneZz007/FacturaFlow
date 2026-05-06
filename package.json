@@ -1,0 +1,40 @@
+{
+  "name": "facturaflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FacturaFlow MVP serverless para ingesta y procesamiento asincrono de facturas PDF.",
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "build": "tsc --noEmit",
+    "cdk:synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "load:test": "k6 run load-tests/upload-load-test.js",
+    "smoke:test": "node scripts/smoke-test.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-lambda": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/client-sqs": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^22.0.0",
+    "aws-cdk": "^2.0.0",
+    "aws-cdk-lib": "^2.0.0",
+    "constructs": "^10.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}

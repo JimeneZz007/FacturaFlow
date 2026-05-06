@@ -1,0 +1,12 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Usuario corporativo", "Carga facturas PDF y consulta trackingId.")
+System(facturaflow, "FacturaFlow", "MVP serverless para procesar facturas.")
+System_Ext(ai, "IA externa/mock", "Extrae datos de facturas.")
+System_Ext(erp, "ERP corporativo/mock", "Recibe facturas aprobadas.")
+
+Rel(user, facturaflow, "Carga PDFs", "HTTPS")
+Rel(facturaflow, ai, "Solicita extraccion", "Invoke/HTTPS")
+Rel(facturaflow, erp, "Despacha aprobadas", "Invoke/HTTPS")
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+title Validation and Processing Components
+
+package "handlers" {
+  [processorHandler]
+}
+
+package "application" {
+  [ProcessInvoiceUseCase]
+  [ValidateInvoiceUseCase]
+  [DispatchToErpUseCase]
+}
+
+package "domain" {
+  [Money]
+  [TaxRules]
+  [Invoice]
+}
+
+package "infrastructure" {
+  [AiMockLambdaClient]
+  [DynamoInvoiceRepository]
+  [DynamoJobRepository]
+  [DynamoAuditLogRepository]
+  [SqsErpQueue]
+  [JsonTaxRulesProvider]
+}
+
+[processorHandler] --> [ProcessInvoiceUseCase]
+[ProcessInvoiceUseCase] --> [AiMockLambdaClient]
+[ProcessInvoiceUseCase] --> [ValidateInvoiceUseCase]
+[ValidateInvoiceUseCase] --> [Money]
+[ValidateInvoiceUseCase] --> [JsonTaxRulesProvider]
+[JsonTaxRulesProvider] --> [TaxRules]
+[ProcessInvoiceUseCase] --> [DynamoInvoiceRepository]
+[ProcessInvoiceUseCase] --> [DynamoJobRepository]
+[ProcessInvoiceUseCase] --> [DynamoAuditLogRepository]
+[ProcessInvoiceUseCase] --> [SqsErpQueue]
+@enduml
