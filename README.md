@@ -6,6 +6,18 @@ FacturaFlow es un MVP B2B serverless para ingestar facturas PDF, responder con u
 
 `POST /uploads` entra por API Gateway HTTP API y dispara una Lambda de ingesta. La Lambda guarda el PDF cifrado en S3, crea un job en DynamoDB y publica en SQS. Una Lambda Processor consume la cola con concurrencia maxima 10 para respetar el limite de IA, invoca `AiMock`, valida dinero con centavos enteros y guarda la factura. Si queda `APPROVED`, publica en `ERPQueue`. `ErpDispatcher` consume con concurrencia 1 y batch 5, aplicando rate limit de 5 req/s antes de invocar `ErpMock`. El propio `ErpMock` refuerza el limite con un contador atomico en DynamoDB y responde `429` si se supera.
 
+## Patrones de arquitectura
+
+El MVP aplica explicitamente:
+
+- Event-Driven Architecture: SQS desacopla ingesta, procesamiento y despacho ERP.
+- Serverless / FaaS: API Gateway, Lambda, S3, SQS, DynamoDB y CloudWatch operan bajo demanda.
+- Hexagonal Architecture / Ports & Adapters: dominio y casos de uso dependen de puertos, no de AWS.
+- Pipes and Filters: el procesamiento sigue el pipeline ingesta -> almacenamiento -> IA mock -> validacion -> persistencia -> ERP.
+- Event Sourcing parcial: `AuditLogTable` registra eventos append-only del ciclo de vida de la factura.
+
+El detalle y los patrones descartados estan en [docs/architecture-patterns.md](docs/architecture-patterns.md).
+
 ## Prerequisitos
 
 - Node.js 20+

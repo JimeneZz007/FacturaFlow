@@ -6,6 +6,8 @@ package "handlers" {
 }
 
 package "application" {
+  [Ports]
+  [IngestDocumentUseCase]
   [ProcessInvoiceUseCase]
   [ValidateInvoiceUseCase]
   [DispatchToErpUseCase]
@@ -18,14 +20,19 @@ package "domain" {
 }
 
 package "infrastructure" {
+  [S3DocumentStorage]
   [AiMockLambdaClient]
   [DynamoInvoiceRepository]
   [DynamoJobRepository]
   [DynamoAuditLogRepository]
+  [SqsProcessingQueue]
   [SqsErpQueue]
   [JsonTaxRulesProvider]
 }
 
+[IngestDocumentUseCase] --> [Ports]
+[ProcessInvoiceUseCase] --> [Ports]
+[DispatchToErpUseCase] --> [Ports]
 [processorHandler] --> [ProcessInvoiceUseCase]
 [ProcessInvoiceUseCase] --> [AiMockLambdaClient]
 [ProcessInvoiceUseCase] --> [ValidateInvoiceUseCase]
@@ -36,4 +43,14 @@ package "infrastructure" {
 [ProcessInvoiceUseCase] --> [DynamoJobRepository]
 [ProcessInvoiceUseCase] --> [DynamoAuditLogRepository]
 [ProcessInvoiceUseCase] --> [SqsErpQueue]
+
+note right of [ProcessInvoiceUseCase]
+Pipes and Filters:
+AI extraction -> validation -> persistence -> ERP queue
+end note
+
+note bottom of [Ports]
+Hexagonal ports for storage,
+queues, AI, ERP and audit.
+end note
 @enduml
