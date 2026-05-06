@@ -6,7 +6,7 @@ import { FlowEvent, InvoiceView, JobStatus, JobStatusResponse, Scenario, Validat
 const scenarioLabels: Record<Scenario, string> = {
   approved: "Factura aprobada",
   requires_review: "Baja confianza",
-  math_error: "Error matematico"
+  math_error: "Error matemático"
 };
 
 const expectedEvents = [
@@ -98,7 +98,7 @@ export function App() {
       <section className="topbar" aria-label="Resumen de FacturaFlow">
         <div>
           <h1>FacturaFlow MVP</h1>
-          <p>ingesta &rarr; IA mock &rarr; validacion matematica &rarr; almacenamiento</p>
+          <p>ingesta &rarr; IA mock &rarr; validación matemática &rarr; almacenamiento</p>
         </div>
         <span className={`mode-pill ${apiMode ? "api" : "demo"}`}>
           {apiMode ? "API real" : "Demo local"}
@@ -109,7 +109,7 @@ export function App() {
         <form className="panel upload-panel" onSubmit={submit}>
           <div className="panel-heading">
             <h2>Procesar factura</h2>
-            <p>Sube un PDF o usa la factura demo para ejecutar el flujo asincrono.</p>
+            <p>Sube un PDF o usa la factura demo para ejecutar el flujo asíncrono.</p>
           </div>
 
           <label className="field">
@@ -147,7 +147,7 @@ export function App() {
         <section className={`panel status-panel ${finalTone}`}>
           <div className="panel-heading">
             <h2>Estado del procesamiento</h2>
-            <p>La ingesta responde rapido; el resto avanza por colas y consumidores.</p>
+            <p>La ingesta responde rápido; el resto avanza por colas y consumidores.</p>
           </div>
 
           <div className="status-grid">
@@ -155,12 +155,13 @@ export function App() {
             <Metric label="Estado actual" value={status} />
             <Metric
               label="Tiempo de ingesta"
-              value={ingestLatencyMs === undefined ? "Sin medicion" : `${ingestLatencyMs} ms`}
+              value={ingestLatencyMs === undefined ? "Sin medición" : `${ingestLatencyMs} ms`}
             />
           </div>
 
           <div className={`final-state ${finalTone}`}>
-            <span>{finalStateCopy(status)}</span>
+            <span className="final-label">{finalStateCopy(status)}</span>
+            {status !== "IDLE" && <code>{status}</code>}
           </div>
         </section>
       </section>
@@ -198,7 +199,7 @@ function Timeline({ events }: { events: FlowEvent[] }) {
     <section className="panel timeline-panel">
       <div className="panel-heading">
         <h2>Timeline de eventos</h2>
-        <p>Eventos emitidos por el flujo asincrono.</p>
+        <p>Eventos emitidos por el flujo asíncrono.</p>
       </div>
       <ol className="timeline">
         {visibleEvents.map((eventType) => {
@@ -250,8 +251,8 @@ function ValidationCard({
   return (
     <section className="panel">
       <div className="panel-heading">
-        <h2>Validacion matematica</h2>
-        <p>Comparacion exacta usando centavos enteros en backend.</p>
+        <h2>Validación matemática</h2>
+        <p>Comparación exacta usando centavos enteros en backend.</p>
       </div>
       <div className="math-box">
         <span>subtotal + taxAmount</span>
@@ -262,7 +263,7 @@ function ValidationCard({
         <strong>{validation?.total ?? "pendiente"}</strong>
       </div>
       <div className={`comparison ${validation?.isValid ? "ok" : "warn"}`}>
-        {validation ? (validation.isValid ? "Coincide" : "No coincide") : "Esperando validacion"}
+        {validation ? (validation.isValid ? "Coincide" : "No coincide") : "Esperando validación"}
       </div>
       {invoice?.validationReasons.length ? (
         <p className="reason-text">{invoice.validationReasons.join(", ")}</p>
@@ -282,7 +283,7 @@ function Data({ label, value }: { label: string; value?: string }) {
 
 function finalStateCopy(status: JobStatus): string {
   if (status === "APPROVED") return "APPROVED";
-  if (status === "REQUIRES_REVIEW") return "REQUIRES_REVIEW";
+  if (status === "REQUIRES_REVIEW") return "Requiere revisión";
   if (status === "FAILED") return "FAILED";
   if (status === "PROCESSING") return "Procesando en background";
   if (status === "QUEUED") return "En cola";

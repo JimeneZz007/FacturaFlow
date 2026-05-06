@@ -194,11 +194,32 @@ h2 {
 .final-state {
   min-height: 80px;
   border-radius: 8px;
-  display: grid;
-  place-items: center;
-  font-size: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-weight: 900;
   border: 1px solid #d7dfec;
+  padding: 14px;
+  text-align: center;
+}
+
+.final-label {
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.final-state code {
+  max-width: 100%;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 .final-state.active {
