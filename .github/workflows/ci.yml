@@ -31,5 +31,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Build Web
+        run: npm run web:build
+
       - name: CDK Synth
         run: npm run cdk:synth

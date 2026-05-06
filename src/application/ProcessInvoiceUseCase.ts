@@ -31,6 +31,11 @@ export class ProcessInvoiceUseCase {
   }
 
   private async runAiExtractionStage(message: ProcessingMessage): Promise<ExtractedInvoice> {
+    await this.audit.append({
+      trackingId: message.trackingId,
+      eventType: "AI_EXTRACTION_STARTED"
+    });
+
     const extracted = await this.ai.extract(message);
     await this.audit.append({
       trackingId: message.trackingId,
@@ -103,6 +108,15 @@ export class ProcessInvoiceUseCase {
       trackingId: message.trackingId,
       invoiceId,
       eventType
+    });
+
+    await this.audit.append({
+      trackingId: message.trackingId,
+      invoiceId,
+      eventType: "STORED",
+      details: {
+        status: validation.status
+      }
     });
 
     if (validation.status === "APPROVED") {

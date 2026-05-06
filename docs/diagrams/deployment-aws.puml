@@ -5,6 +5,9 @@ Deployment_Node(aws, "AWS Account", "us-east-1 or selected region") {
   Deployment_Node(apiNode, "API Gateway HTTP API") {
     Container(api, "FacturaFlowHttpApi")
   }
+  Deployment_Node(webNode, "Amazon S3 Static Website") {
+    Container(web, "WebBucket", "React/Vite build")
+  }
   Deployment_Node(lambdaNode, "AWS Lambda") {
     Container(ingest, "Ingest")
     Container(processor, "Processor", "reserved concurrency 10")
@@ -29,6 +32,7 @@ Deployment_Node(aws, "AWS Account", "us-east-1 or selected region") {
 }
 
 Rel(api, ingest, "POST /uploads")
+Rel(web, api, "POST /uploads, GET /jobs/{trackingId}")
 Rel(api, ai, "POST /ai-mock")
 Rel(api, erp, "POST /erp-mock")
 Rel(ingest, s3, "PutObject encrypted")

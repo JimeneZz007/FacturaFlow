@@ -10,7 +10,7 @@ Todo PDF debe almacenarse cifrado y las acciones relevantes deben ser trazables.
 
 ## Decision
 
-Usar S3 con cifrado server-side, bloqueo publico y SSL. Registrar eventos importantes con Event Sourcing parcial en DynamoDB `AuditLogTable` mediante inserts append-only desde la aplicacion. Emitir logs JSON en CloudWatch.
+Usar S3 con cifrado server-side, bloqueo publico y SSL. Registrar eventos importantes con Event Sourcing parcial en DynamoDB `AuditLogTable` mediante inserts append-only desde la aplicacion: `DOCUMENT_INGESTED`, `AI_EXTRACTION_STARTED`, `AI_EXTRACTION_COMPLETED`, `VALIDATION_COMPLETED`, `INVOICE_APPROVED`, `INVOICE_REQUIRES_REVIEW`, `STORED`, `ERP_DISPATCHED` y `ERP_DISPATCH_FAILED`. Emitir logs JSON en CloudWatch.
 
 ## Consecuencias
 

@@ -6,6 +6,8 @@ FacturaFlow es un MVP B2B serverless para ingestar facturas PDF, responder con u
 
 `POST /uploads` entra por API Gateway HTTP API y dispara una Lambda de ingesta. La Lambda guarda el PDF cifrado en S3, crea un job en DynamoDB y publica en SQS. Una Lambda Processor consume la cola con concurrencia maxima 10 para respetar el limite de IA, invoca `AiMock`, valida dinero con centavos enteros y guarda la factura. Si queda `APPROVED`, publica en `ERPQueue`. `ErpDispatcher` consume con concurrencia 1 y batch 5, aplicando rate limit de 5 req/s antes de invocar `ErpMock`. El propio `ErpMock` refuerza el limite con un contador atomico en DynamoDB y responde `429` si se supera.
 
+La interfaz web vive en `apps/web` y se despliega como sitio estatico en S3. Puede operar en modo demo local sin AWS o en modo API real usando `VITE_API_BASE_URL`.
+
 ## Patrones de arquitectura
 
 El MVP aplica explicitamente:
@@ -34,16 +36,67 @@ npm install
 npm run lint
 npm test
 npm run build
+npm run web:build
 npm run cdk:synth
+```
+
+## Web local
+
+Modo demo local sin AWS:
+
+```bash
+npm run web:dev
+```
+
+Abre la URL local que imprime Vite y procesa una factura demo. Si no existe `VITE_API_BASE_URL`, la interfaz simula en memoria la ingesta, IA mock, validacion, almacenamiento y timeline.
+
+Modo API real contra API Gateway:
+
+```bash
+VITE_API_BASE_URL=https://... npm run web:dev
+```
+
+En Windows PowerShell:
+
+```powershell
+$env:VITE_API_BASE_URL="https://..."
+npm run web:dev
+```
+
+Para generar el build estatico:
+
+```bash
+npm run web:build
 ```
 
 ## Despliegue
 
+Primer despliegue para crear API y hosting web:
+
 ```bash
+npm run web:build
 npm run deploy
 ```
 
-El output `ApiUrl` entrega la URL publica de API Gateway.
+Los outputs entregan:
+
+- `ApiUrl`: URL publica de API Gateway.
+- `WebUrl`: URL publica del sitio estatico S3.
+
+Para que la web desplegada use la API real, reconstruye el frontend con el `ApiUrl` y vuelve a desplegar los assets:
+
+```bash
+VITE_API_BASE_URL=https://... npm run web:build
+npm run deploy
+```
+
+En Windows PowerShell:
+
+```powershell
+$env:VITE_API_BASE_URL="https://..."
+npm run web:build
+npm run deploy
+```
 
 ## Pruebas
 
@@ -76,8 +129,14 @@ Si el bucket contiene PDFs, vaciarlo primero o aplicar una politica de lifecycle
 ## Evidencias para entrega
 
 - Captura del output `ApiUrl`.
+- Captura del output `WebUrl`.
+- Carga de factura desde navegador.
+- `trackingId` visible en la interfaz.
+- Timeline con `DOCUMENT_INGESTED`, `AI_EXTRACTION_STARTED`, `AI_EXTRACTION_COMPLETED`, `VALIDATION_COMPLETED`, `INVOICE_APPROVED` o `INVOICE_REQUIRES_REVIEW`, y `STORED`.
+- Estado final visual `APPROVED` o `REQUIRES_REVIEW`.
 - Salida de `npm run lint`, `npm test`, `npm run build`, `npm run cdk:synth`.
 - Respuesta `202` de `POST /uploads` con `trackingId`.
+- Consulta `GET /jobs/{trackingId}` con estado, factura, validacion y eventos.
 - CloudWatch Logs JSON con `trackingId`, `component`, `event`, `status`, `latencyMs`.
 - Metricas de SQS mostrando `QueueDepth` durante carga.
 - Logs de `AiMockLambda` mostrando latencias de 3 a 5 segundos.
@@ -87,4 +146,3 @@ Si el bucket contiene PDFs, vaciarlo primero o aplicar una politica de lifecycle
 ## Grupo de Arquitectura
 
 Valentina Calderon, Sebastian Nova & Santiago Jimenez
-

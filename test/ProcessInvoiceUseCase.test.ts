@@ -79,10 +79,12 @@ function createUseCase(
   const invoices: InvoiceRepository = {
     put: vi.fn(async (invoice) => {
       savedInvoices.push(invoice);
-    })
+    }),
+    get: vi.fn()
   };
   const jobs: JobRepository = {
     create: vi.fn(),
+    get: vi.fn(),
     markProcessing: vi.fn(),
     markCompleted: vi.fn(),
     markFailed: vi.fn()
@@ -93,7 +95,8 @@ function createUseCase(
     })
   };
   const audit: AuditLogRepository = {
-    append: vi.fn()
+    append: vi.fn(),
+    listByTrackingId: vi.fn()
   };
 
   return new ProcessInvoiceUseCase(

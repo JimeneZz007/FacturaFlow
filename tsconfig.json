@@ -11,5 +11,11 @@
     "types": ["node", "vitest/globals"],
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "infra/**/*.ts", "test/**/*.ts", "config/**/*.json", "scripts/**/*.js"]
+  "include": [
+    "src/**/*.ts",
+    "infra/**/*.ts",
+    "test/**/*.ts",
+    "config/**/*.json",
+    "scripts/**/*.js"
+  ]
 }

@@ -9,6 +9,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 
@@ -39,6 +40,12 @@ export class FacturaFlowStack extends cdk.Stack {
       partitionKey: { name: "auditId", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY
+    });
+    auditLogTable.addGlobalSecondaryIndex({
+      indexName: "TrackingIdIndex",
+      partitionKey: { name: "trackingId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "createdAt", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL
     });
 
     const erpRateLimitTable = new dynamodb.Table(this, "ErpRateLimitTable", {
@@ -96,6 +103,15 @@ export class FacturaFlowStack extends cdk.Stack {
       environment: sharedEnvironment
     });
 
+    const jobStatus = this.nodeFunction(
+      "JobStatus",
+      "src/infrastructure/handlers/jobStatusHandler.ts",
+      {
+        timeout: Duration.seconds(5),
+        environment: sharedEnvironment
+      }
+    );
+
     const processor = this.nodeFunction("Processor", "src/infrastructure/handlers/processorHandler.ts", {
       timeout: Duration.seconds(60),
       reservedConcurrentExecutions: 10,
@@ -121,10 +137,13 @@ export class FacturaFlowStack extends cdk.Stack {
     documentsBucket.grantPut(ingest);
     jobsTable.grantWriteData(ingest);
     jobsTable.grantWriteData(processor);
+    jobsTable.grantReadData(jobStatus);
     invoicesTable.grantWriteData(processor);
+    invoicesTable.grantReadData(jobStatus);
     auditLogTable.grantWriteData(ingest);
     auditLogTable.grantWriteData(processor);
     auditLogTable.grantWriteData(erpDispatcher);
+    auditLogTable.grantReadData(jobStatus);
     erpRateLimitTable.grantWriteData(erpMock);
     processingQueue.grantSendMessages(ingest);
     processingQueue.grantConsumeMessages(processor);
@@ -149,13 +168,28 @@ export class FacturaFlowStack extends cdk.Stack {
     );
 
     const api = new apigatewayv2.HttpApi(this, "FacturaFlowHttpApi", {
-      apiName: "facturaflow-mvp"
+      apiName: "facturaflow-mvp",
+      corsPreflight: {
+        allowHeaders: ["content-type"],
+        allowMethods: [
+          apigatewayv2.CorsHttpMethod.GET,
+          apigatewayv2.CorsHttpMethod.POST,
+          apigatewayv2.CorsHttpMethod.OPTIONS
+        ],
+        allowOrigins: ["*"]
+      }
     });
 
     api.addRoutes({
       path: "/uploads",
       methods: [apigatewayv2.HttpMethod.POST],
       integration: new integrations.HttpLambdaIntegration("IngestIntegration", ingest)
+    });
+
+    api.addRoutes({
+      path: "/jobs/{trackingId}",
+      methods: [apigatewayv2.HttpMethod.GET],
+      integration: new integrations.HttpLambdaIntegration("JobStatusIntegration", jobStatus)
     });
 
     api.addRoutes({
@@ -173,6 +207,30 @@ export class FacturaFlowStack extends cdk.Stack {
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.url ?? "unknown",
       description: "Public HTTP API URL for FacturaFlow MVP"
+    });
+
+    const webBucket = new s3.Bucket(this, "WebBucket", {
+      websiteIndexDocument: "index.html",
+      websiteErrorDocument: "index.html",
+      publicReadAccess: true,
+      blockPublicAccess: new s3.BlockPublicAccess({
+        blockPublicAcls: false,
+        blockPublicPolicy: false,
+        ignorePublicAcls: false,
+        restrictPublicBuckets: false
+      }),
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true
+    });
+
+    new s3deploy.BucketDeployment(this, "WebDeployment", {
+      sources: [s3deploy.Source.asset(path.join(__dirname, "..", "apps", "web", "dist"))],
+      destinationBucket: webBucket
+    });
+
+    new cdk.CfnOutput(this, "WebUrl", {
+      value: webBucket.bucketWebsiteUrl,
+      description: "Public S3 static website URL for FacturaFlow web MVP"
     });
   }
 

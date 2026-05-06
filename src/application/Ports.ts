@@ -32,6 +32,7 @@ export interface DocumentStorage {
 
 export interface JobRepository {
   create(job: ProcessingJob): Promise<void>;
+  get(trackingId: string): Promise<ProcessingJob | undefined>;
   markProcessing(trackingId: string): Promise<void>;
   markCompleted(trackingId: string, status: "APPROVED" | "REQUIRES_REVIEW", invoiceId: string): Promise<void>;
   markFailed(trackingId: string, errorCode: string): Promise<void>;
@@ -39,16 +40,28 @@ export interface JobRepository {
 
 export interface InvoiceRepository {
   put(invoice: InvoiceRecord): Promise<void>;
+  get(invoiceId: string): Promise<InvoiceRecord | undefined>;
 }
 
 export type AuditEventType =
   | "DOCUMENT_INGESTED"
+  | "AI_EXTRACTION_STARTED"
   | "AI_EXTRACTION_COMPLETED"
   | "VALIDATION_COMPLETED"
   | "INVOICE_APPROVED"
   | "INVOICE_REQUIRES_REVIEW"
+  | "STORED"
   | "ERP_DISPATCHED"
   | "ERP_DISPATCH_FAILED";
+
+export interface AuditLogEvent {
+  auditId: string;
+  trackingId: string;
+  invoiceId?: string;
+  eventType: AuditEventType;
+  createdAt: string;
+  details?: Record<string, unknown>;
+}
 
 export interface AuditLogRepository {
   append(event: {
@@ -57,6 +70,7 @@ export interface AuditLogRepository {
     eventType: AuditEventType;
     details?: Record<string, unknown>;
   }): Promise<void>;
+  listByTrackingId(trackingId: string): Promise<AuditLogEvent[]>;
 }
 
 export interface ProcessingQueue {

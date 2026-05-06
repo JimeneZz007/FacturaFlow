@@ -3,6 +3,7 @@
 
 Person(user, "Usuario corporativo")
 System_Boundary(ff, "FacturaFlow") {
+  Container(web, "Web App", "React + Vite", "UI para subir o simular facturas, consultar trackingId y ver timeline.")
   Container(api, "HTTP API", "API Gateway", "POST /uploads, /ai-mock, /erp-mock")
   Container(ingest, "Ingest Lambda", "Node.js TypeScript", "Valida payload, guarda PDF, crea job y encola.")
   Container(processor, "Processor Lambda", "Node.js TypeScript", "Pipeline IA -> validacion -> persistencia -> ERP.")
@@ -10,6 +11,7 @@ System_Boundary(ff, "FacturaFlow") {
   Container(dispatcher, "ERP Dispatcher Lambda", "Node.js TypeScript", "Rate limit <= 5 req/s.")
   Container(erp, "ERP Mock Lambda", "Node.js TypeScript", "Registra recepcion.")
   ContainerDb(s3, "Documents Bucket", "S3", "PDFs cifrados.")
+  ContainerDb(webS3, "Web Bucket", "S3 static website", "Build estatico de apps/web.")
   ContainerDb(jobs, "JobsTable", "DynamoDB", "Estado por trackingId.")
   ContainerDb(invoices, "InvoicesTable", "DynamoDB", "Facturas procesadas.")
   ContainerDb(audit, "AuditLogTable", "DynamoDB", "Eventos append-only.")
@@ -18,7 +20,10 @@ System_Boundary(ff, "FacturaFlow") {
   ContainerQueue(eq, "ERPQueue", "SQS", "Backlog ERP.")
 }
 
-Rel(user, api, "POST /uploads", "HTTPS")
+Rel(user, web, "Usa UI publica", "HTTP")
+Rel(web, api, "POST /uploads y GET /jobs/{trackingId}", "HTTPS")
+Rel(user, api, "POST /uploads opcional", "HTTPS")
+Rel(webS3, web, "Sirve HTML/CSS/JS")
 Rel(api, ingest, "Invoca")
 Rel(ingest, s3, "Guarda PDF")
 Rel(ingest, jobs, "Crea job")

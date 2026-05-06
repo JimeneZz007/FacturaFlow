@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 
 export default [
   {
-    ignores: ["node_modules/**", "cdk.out/**", "dist/**", "coverage/**"]
+    ignores: ["node_modules/**", "cdk.out/**", "dist/**", "apps/web/dist/**", "coverage/**"]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -11,7 +11,7 @@ export default [
     files: ["**/*.ts"],
     languageOptions: {
       parserOptions: {
-        project: "./tsconfig.json"
+        project: ["./tsconfig.json", "./apps/web/tsconfig.json"]
       }
     },
     rules: {

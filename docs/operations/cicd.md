@@ -12,7 +12,8 @@ GitHub Actions valida cada pull request y push a `main` sin desplegar automatica
 4. `npm run lint`.
 5. `npm test`.
 6. `npm run build`.
-7. `npm run cdk:synth`.
+7. `npm run web:build`.
+8. `npm run cdk:synth`.
 
 ## Deploy manual
 

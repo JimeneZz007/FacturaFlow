@@ -1,4 +1,4 @@
-import { PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ProcessingJob } from "../../domain/Invoice";
 import { JobRepository } from "../../application/Ports";
 import { dynamoDocumentClient } from "../aws/clients";
@@ -14,6 +14,16 @@ export class DynamoJobRepository implements JobRepository {
         ConditionExpression: "attribute_not_exists(trackingId)"
       })
     );
+  }
+
+  async get(trackingId: string): Promise<ProcessingJob | undefined> {
+    const result = await dynamoDocumentClient.send(
+      new GetCommand({
+        TableName: this.tableName,
+        Key: { trackingId }
+      })
+    );
+    return result.Item as ProcessingJob | undefined;
   }
 
   async markProcessing(trackingId: string): Promise<void> {
