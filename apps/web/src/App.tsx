@@ -5,8 +5,10 @@ import { FlowEvent, InvoiceView, JobStatus, JobStatusResponse, Scenario, Validat
 
 const scenarioLabels: Record<Scenario, string> = {
   approved: "Factura aprobada",
-  requires_review: "Baja confianza",
-  math_error: "Error matemático"
+  requires_review: "Revisión genérica",
+  low_confidence: "Baja confianza",
+  math_error: "Error matemático",
+  total_mismatch: "Total no coincide"
 };
 
 const expectedEvents = [

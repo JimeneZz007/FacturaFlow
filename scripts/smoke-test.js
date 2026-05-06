@@ -1,7 +1,20 @@
 const apiBaseUrl = process.env.API_BASE_URL;
+const supportedFixtures = [
+  "approved",
+  "requires_review",
+  "low_confidence",
+  "math_error",
+  "total_mismatch"
+];
+const fixture = process.env.SMOKE_FIXTURE || "approved";
 
 if (!apiBaseUrl) {
   console.error("API_BASE_URL is required. Example: API_BASE_URL=https://... npm run smoke:test");
+  process.exit(1);
+}
+
+if (!supportedFixtures.includes(fixture)) {
+  console.error(`SMOKE_FIXTURE must be one of: ${supportedFixtures.join(", ")}`);
   process.exit(1);
 }
 
@@ -10,7 +23,7 @@ const payload = {
   contentType: "application/pdf",
   contentBase64: "JVBERi0xLjQKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZz4+CmVuZG9iago=",
   country: "CO",
-  fixture: "approved"
+  fixture
 };
 
 async function main() {

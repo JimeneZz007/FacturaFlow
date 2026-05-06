@@ -4,9 +4,11 @@ FacturaFlow es un MVP B2B serverless para ingestar facturas PDF, responder con u
 
 ## Arquitectura resumida
 
-`POST /uploads` entra por API Gateway HTTP API y dispara una Lambda de ingesta. La Lambda guarda el PDF cifrado en S3, crea un job en DynamoDB y publica en SQS. Una Lambda Processor consume la cola con concurrencia maxima 10 para respetar el limite de IA, invoca `AiMock`, valida dinero con centavos enteros y guarda la factura. Si queda `APPROVED`, publica en `ERPQueue`. `ErpDispatcher` consume con concurrencia 1 y batch 5, aplicando rate limit de 5 req/s antes de invocar `ErpMock`. El propio `ErpMock` refuerza el limite con un contador atomico en DynamoDB y responde `429` si se supera.
+`POST /uploads` entra por API Gateway HTTP API y dispara una Lambda de ingesta. La Lambda guarda el PDF cifrado en S3, crea un job en DynamoDB y publica en SQS. Una Lambda Processor consume la cola con concurrencia maxima 10 desde el event source mapping para respetar el limite de IA, invoca `AiMock`, valida dinero con centavos enteros y guarda la factura. Si queda `APPROVED`, publica en `ERPQueue`. `ErpDispatcher` consume lotes de hasta 5 mensajes y aplica rate limit de 5 req/s antes de invocar `ErpMock`. El propio `ErpMock` refuerza el limite con un contador atomico en DynamoDB y responde `429` si se supera.
 
 La interfaz web vive en `apps/web` y se despliega como sitio estatico en S3. Puede operar en modo demo local sin AWS o en modo API real usando `VITE_API_BASE_URL`.
+
+El limite de 10 documentos concurrentes hacia la IA se controla en el event source mapping de `ProcessingQueue` hacia Processor con `maxConcurrency: 10`. No se reserva concurrencia directamente en Lambda porque `reservedConcurrentExecutions` puede fallar en cuentas AWS nuevas si reduce la concurrencia no reservada por debajo del minimo permitido.
 
 ## Patrones de arquitectura
 

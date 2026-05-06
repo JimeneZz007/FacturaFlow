@@ -7,21 +7,23 @@ import { S3DocumentStorage } from "../repositories/S3DocumentStorage";
 import { SqsProcessingQueue } from "../queues/SqsProcessingQueue";
 import { Logger, withLatency } from "../logging/Logger";
 import { jsonResponse } from "./response";
+import { SUPPORTED_UPLOAD_FIXTURES } from "../../domain/Fixture";
 
 const schema = z.object({
   fileName: z.string().min(1).max(180).regex(/\.pdf$/i),
   contentType: z.literal("application/pdf"),
   contentBase64: z.string().min(1),
   country: z.enum(["CO", "MX", "CL"]).default("CO"),
-  fixture: z.enum(["approved", "requires_review", "math_error"]).optional()
-});
+  fixture: z.enum(SUPPORTED_UPLOAD_FIXTURES).optional()
+}).strict();
+
+type UploadCommand = z.infer<typeof schema>;
 
 const logger = new Logger("IngestLambda");
 
 export async function handler(event: { body?: string | null }): Promise<APIGatewayProxyStructuredResultV2> {
   return withLatency(logger, "UPLOAD_REQUEST", {}, async () => {
-    const rawBody = event.body ? JSON.parse(event.body) : {};
-    const command = schema.parse(rawBody);
+    const command = parseUploadCommand(event.body);
 
     const useCase = new IngestDocumentUseCase(
       new S3DocumentStorage(requiredEnv("DOCUMENT_BUCKET_NAME")),
@@ -40,13 +42,40 @@ export async function handler(event: { body?: string | null }): Promise<APIGatew
   }).catch((error) => {
     logger.error({
       event: "UPLOAD_REQUEST",
-      errorCode: error instanceof Error ? error.name : "UNKNOWN_ERROR"
+      errorCode: errorCodeFor(error)
     });
+    return invalidUploadResponse(error);
+  });
+}
+
+export function parseUploadCommand(body?: string | null): UploadCommand {
+  const rawBody = body ? JSON.parse(body) : {};
+  return schema.parse(rawBody);
+}
+
+function invalidUploadResponse(error: unknown): APIGatewayProxyStructuredResultV2 {
+  if (error instanceof z.ZodError) {
     return jsonResponse(400, {
       message: "Invalid upload request",
-      errorCode: error instanceof Error ? error.name : "UNKNOWN_ERROR"
+      errorCode: "VALIDATION_ERROR",
+      details: error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message
+      }))
     });
+  }
+
+  return jsonResponse(400, {
+    message: "Invalid upload request",
+    errorCode: errorCodeFor(error)
   });
+}
+
+function errorCodeFor(error: unknown): string {
+  if (error instanceof z.ZodError) {
+    return "VALIDATION_ERROR";
+  }
+  return error instanceof Error ? error.name : "UNKNOWN_ERROR";
 }
 
 function requiredEnv(name: string): string {

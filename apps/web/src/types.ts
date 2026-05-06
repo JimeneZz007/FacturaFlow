@@ -1,4 +1,9 @@
-export type Scenario = "approved" | "requires_review" | "math_error";
+export type Scenario =
+  | "approved"
+  | "requires_review"
+  | "low_confidence"
+  | "math_error"
+  | "total_mismatch";
 
 export type JobStatus =
   | "IDLE"

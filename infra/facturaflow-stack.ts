@@ -89,7 +89,6 @@ export class FacturaFlowStack extends cdk.Stack {
 
     const aiMock = this.nodeFunction("AiMock", "src/infrastructure/handlers/aiMockHandler.ts", {
       timeout: Duration.seconds(10),
-      reservedConcurrentExecutions: 10,
       environment: sharedEnvironment
     });
 
@@ -114,7 +113,6 @@ export class FacturaFlowStack extends cdk.Stack {
 
     const processor = this.nodeFunction("Processor", "src/infrastructure/handlers/processorHandler.ts", {
       timeout: Duration.seconds(60),
-      reservedConcurrentExecutions: 10,
       environment: {
         ...sharedEnvironment,
         AI_MOCK_FUNCTION_NAME: aiMock.functionName
@@ -126,7 +124,6 @@ export class FacturaFlowStack extends cdk.Stack {
       "src/infrastructure/handlers/erpDispatcherHandler.ts",
       {
         timeout: Duration.seconds(30),
-        reservedConcurrentExecutions: 1,
         environment: {
           ...sharedEnvironment,
           ERP_MOCK_FUNCTION_NAME: erpMock.functionName

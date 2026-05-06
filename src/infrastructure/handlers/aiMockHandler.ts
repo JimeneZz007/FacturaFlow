@@ -1,5 +1,6 @@
 import { APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { randomUUID } from "node:crypto";
+import { isUploadFixture, normalizeAiMockScenario, UploadFixture } from "../../domain/Fixture";
 import { ExtractedInvoice } from "../../domain/Invoice";
 import { Logger, withLatency } from "../logging/Logger";
 import { jsonResponse } from "./response";
@@ -8,7 +9,7 @@ const logger = new Logger("AiMockLambda");
 
 export async function handler(event: { body?: string | null; fixture?: string }): Promise<ExtractedInvoice | APIGatewayProxyStructuredResultV2> {
   const payload = event.body ? JSON.parse(event.body) : event;
-  const fixture = payload.fixture ?? "approved";
+  const fixture = parseFixture(payload.fixture);
   const trackingId = payload.trackingId;
 
   return withLatency(logger, "AI_EXTRACTION", { trackingId }, async () => {
@@ -27,7 +28,8 @@ export async function handler(event: { body?: string | null; fixture?: string })
   });
 }
 
-function buildFixture(fixture: string): ExtractedInvoice {
+export function buildFixture(fixture: UploadFixture | undefined): ExtractedInvoice {
+  const scenario = normalizeAiMockScenario(fixture);
   const base = {
     invoiceId: `INV-${randomUUID().slice(0, 8)}`,
     issueDate: "2026-05-06",
@@ -44,11 +46,11 @@ function buildFixture(fixture: string): ExtractedInvoice {
     confidence: 0.94
   };
 
-  if (fixture === "requires_review") {
+  if (scenario === "low_confidence") {
     return { ...base, confidence: 0.72 };
   }
 
-  if (fixture === "math_error") {
+  if (scenario === "total_mismatch") {
     return {
       ...base,
       financial: {
@@ -59,6 +61,18 @@ function buildFixture(fixture: string): ExtractedInvoice {
   }
 
   return base;
+}
+
+function parseFixture(fixture: unknown): UploadFixture | undefined {
+  if (fixture === undefined || fixture === null) {
+    return undefined;
+  }
+
+  if (!isUploadFixture(fixture)) {
+    throw new Error(`Unsupported fixture: ${String(fixture)}`);
+  }
+
+  return fixture;
 }
 
 function sleep(ms: number): Promise<void> {

@@ -1,3 +1,5 @@
+import { UploadFixture } from "./Fixture";
+
 export type InvoiceStatus = "APPROVED" | "REQUIRES_REVIEW";
 
 export interface ExtractedInvoice {
@@ -40,7 +42,7 @@ export interface ProcessingJob {
   country: string;
   documentBucket: string;
   documentKey: string;
-  fixture?: "approved" | "requires_review" | "math_error";
+  fixture?: UploadFixture;
   createdAt: string;
   updatedAt: string;
   invoiceId?: string;

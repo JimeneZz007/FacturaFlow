@@ -1,11 +1,12 @@
 import { ExtractedInvoice, InvoiceRecord, ProcessingJob } from "../domain/Invoice";
+import { UploadFixture } from "../domain/Fixture";
 
 export interface IngestDocumentCommand {
   fileName: string;
   contentBase64: string;
   contentType: string;
   country: string;
-  fixture?: "approved" | "requires_review" | "math_error";
+  fixture?: UploadFixture;
 }
 
 export interface ProcessingMessage {
@@ -13,7 +14,7 @@ export interface ProcessingMessage {
   bucket: string;
   key: string;
   country: string;
-  fixture?: "approved" | "requires_review" | "math_error";
+  fixture?: UploadFixture;
 }
 
 export interface ErpDispatchMessage {

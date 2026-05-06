@@ -94,9 +94,9 @@ function buildInvoice(scenario: Scenario): InvoiceView {
       subtotal: "1000.00",
       taxRate: 19,
       taxAmount: "190.00",
-      total: scenario === "math_error" ? "1189.00" : "1190.00"
+      total: scenario === "math_error" || scenario === "total_mismatch" ? "1189.00" : "1190.00"
     },
-    confidence: scenario === "requires_review" ? 0.72 : 0.94,
+    confidence: scenario === "requires_review" || scenario === "low_confidence" ? 0.72 : 0.94,
     status: "APPROVED" as const,
     validationReasons: [] as string[]
   };
