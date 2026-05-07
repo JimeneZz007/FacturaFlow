@@ -1,4 +1,4 @@
-# ADR-001: Serverless Event-driven
+# ADR-001: Arquitectura serverless orientada a eventos
 
 ## Estado
 

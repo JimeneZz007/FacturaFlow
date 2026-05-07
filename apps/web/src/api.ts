@@ -29,7 +29,7 @@ export async function uploadInvoice(input: {
   });
 
   if (!response.ok) {
-    throw new Error(`Upload failed with status ${response.status}`);
+    throw new Error(`Carga fallida con estado ${response.status}`);
   }
 
   return (await response.json()) as UploadResult;
@@ -38,7 +38,7 @@ export async function uploadInvoice(input: {
 export async function getJobStatus(trackingId: string): Promise<JobStatusResponse> {
   const response = await fetch(`${apiBaseUrl}/jobs/${trackingId}`);
   if (!response.ok) {
-    throw new Error(`Job status failed with status ${response.status}`);
+    throw new Error(`Consulta de estado fallida con estado ${response.status}`);
   }
   return (await response.json()) as JobStatusResponse;
 }

@@ -25,7 +25,7 @@ const debugFailures = String(__ENV.DEBUG_FAILURES || "false").toLowerCase() === 
 let printedFailureForVu = false;
 
 if (!apiBaseUrl) {
-  throw new Error("API_BASE_URL is required. Example: API_BASE_URL=https://abc.execute-api.us-east-1.amazonaws.com k6 run load-tests/upload-load-test.js");
+  throw new Error("API_BASE_URL is required. Example: API_BASE_URL=https://abc.execute-api.us-east-1.amazonaws.com k6 run pruebas-carga/upload-load-test.js");
 }
 
 const pdfBase64 = "JVBERi0xLjQKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwvVHlwZSAvQ2F0YWxvZz4+CmVuZG9iago=";
@@ -98,7 +98,7 @@ export default function () {
 }
 
 // Evidencias sugeridas:
-// 1. Guardar salida de consola: API_BASE_URL=... DEBUG_FAILURES=true K6_VUS=25 K6_DURATION=1m k6 run load-tests/upload-load-test.js > evidence/k6-upload.txt
+// 1. Guardar salida de consola: API_BASE_URL=... DEBUG_FAILURES=true K6_VUS=25 K6_DURATION=1m k6 run pruebas-carga/upload-load-test.js > documentacion/evidencias/k6-upload.txt
 // 2. Capturar p95 de http_req_duration y UploadLatencyMs.
 // 3. Capturar ApproximateNumberOfMessagesVisible de ProcessingQueue durante la prueba para demostrar encolamiento.
 // 4. Capturar logs de ErpMockLambda agrupados por segundo para demostrar <= 5 requests/s.

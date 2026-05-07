@@ -1,4 +1,4 @@
-# ADR-003: Security, Audit and Storage
+# ADR-003: Seguridad, auditoria y almacenamiento
 
 ## Estado
 

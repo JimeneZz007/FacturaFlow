@@ -22,7 +22,7 @@ export async function uploadDemoInvoice(input: { scenario: Scenario }): Promise<
 export async function getDemoJobStatus(trackingId: string): Promise<JobStatusResponse> {
   const job = jobs.get(trackingId);
   if (!job) {
-    throw new Error("Demo job not found");
+    throw new Error("Trabajo demo no encontrado");
   }
   return structuredClone(job);
 }

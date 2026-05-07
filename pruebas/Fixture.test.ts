@@ -86,7 +86,7 @@ describe("fixture normalization", () => {
   });
 
   it("load test sends only supported fixtures", () => {
-    const script = readFileSync("load-tests/upload-load-test.js", "utf8");
+    const script = readFileSync("pruebas-carga/upload-load-test.js", "utf8");
     const fixtureMatches = [...script.matchAll(/"([a-z_]+)"/g)]
       .map((match) => match[1])
       .filter((value) => value.includes("_") || value === "approved");

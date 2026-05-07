@@ -1,4 +1,4 @@
-# Observability
+# Observabilidad
 
 FacturaFlow emite logs JSON estructurados en CloudWatch con `trackingId`, `invoiceId`, `component`, `event`, `status`, `latencyMs` y `errorCode` cuando aplica.
 
@@ -19,7 +19,7 @@ FacturaFlow emite logs JSON estructurados en CloudWatch con `trackingId`, `invoi
 | DLQMessages | SQS DLQ visible messages | Alertar fallos persistentes. |
 | LambdaErrors | CloudWatch Lambda Errors | Alertar errores de ejecucion. |
 
-## Queries sugeridas CloudWatch Logs Insights
+## Consultas sugeridas para CloudWatch Logs Insights
 
 ```sql
 fields @timestamp, trackingId, invoiceId, component, event, status, latencyMs, errorCode

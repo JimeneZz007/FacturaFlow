@@ -1,4 +1,4 @@
-# QAW Results
+# Resultados QAW
 
 ## Requerimientos funcionales
 
@@ -28,7 +28,7 @@
 - Debe absorber picos de cierre de mes y cargas por lote.
 - Debe reducir espera manual, errores humanos y retrasos operativos.
 
-## Stakeholders
+## Interesados
 
 - Operaciones del cliente piloto.
 - Equipo financiero/contable.

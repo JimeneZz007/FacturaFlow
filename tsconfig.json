@@ -14,7 +14,7 @@
   "include": [
     "src/**/*.ts",
     "infra/**/*.ts",
-    "test/**/*.ts",
+    "pruebas/**/*.ts",
     "config/**/*.json",
     "scripts/**/*.js"
   ]

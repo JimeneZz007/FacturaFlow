@@ -1,4 +1,4 @@
-# Trade-offs
+# Analisis de trade-offs
 
 | Decision | Beneficio | Costo / riesgo | Mitigacion |
 | --- | --- | --- | --- |

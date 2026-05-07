@@ -1,4 +1,4 @@
-# ADR-002: Queue Rate Limits for AI and ERP
+# ADR-002: Colas y limites de concurrencia para IA y ERP
 
 ## Estado
 
