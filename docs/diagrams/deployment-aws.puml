@@ -10,7 +10,7 @@ Deployment_Node(aws, "AWS Account", "us-east-1 or selected region") {
   }
   Deployment_Node(lambdaNode, "AWS Lambda") {
     Container(ingest, "Ingest")
-    Container(processor, "Processor", "SQS event source max concurrency 10")
+    Container(processor, "Processor", "SQS event source max concurrency 2")
     Container(ai, "AiMock")
     Container(dispatcher, "ErpDispatcher", "Batch 5 + application rate limiter")
     Container(erp, "ErpMock")
@@ -37,7 +37,7 @@ Rel(api, ai, "POST /ai-mock")
 Rel(api, erp, "POST /erp-mock")
 Rel(ingest, s3, "PutObject encrypted")
 Rel(ingest, pq, "SendMessage")
-Rel(pq, processor, "Event source max concurrency 10")
+Rel(pq, processor, "Event source max concurrency 2")
 Rel(processor, ai, "Invoke")
 Rel(processor, eq, "Send approved")
 Rel(eq, dispatcher, "Batch 5; rate limiter <= 5 req/s")

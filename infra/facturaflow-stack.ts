@@ -13,6 +13,8 @@ import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 
+const PROCESSOR_MAX_CONCURRENCY = 2;
+
 export class FacturaFlowStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -152,7 +154,10 @@ export class FacturaFlowStack extends cdk.Stack {
     processor.addEventSource(
       new eventSources.SqsEventSource(processingQueue, {
         batchSize: 1,
-        maxConcurrency: 10,
+        // Bulkhead for new/free-tier AWS accounts: 2 is the minimum supported by Lambda SQS
+        // maximum concurrency, stays <= the external AI limit of 10, avoids account-concurrency
+        // throttling, and lets SQS absorb upload spikes.
+        maxConcurrency: PROCESSOR_MAX_CONCURRENCY,
         reportBatchItemFailures: true
       })
     );

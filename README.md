@@ -4,11 +4,11 @@ FacturaFlow es un MVP B2B serverless para ingestar facturas PDF, responder con u
 
 ## Arquitectura resumida
 
-`POST /uploads` entra por API Gateway HTTP API y dispara una Lambda de ingesta. La Lambda guarda el PDF cifrado en S3, crea un job en DynamoDB y publica en SQS. Una Lambda Processor consume la cola con concurrencia maxima 10 desde el event source mapping para respetar el limite de IA, invoca `AiMock`, valida dinero con centavos enteros y guarda la factura. Si queda `APPROVED`, publica en `ERPQueue`. `ErpDispatcher` consume lotes de hasta 5 mensajes y aplica rate limit de 5 req/s antes de invocar `ErpMock`. El propio `ErpMock` refuerza el limite con un contador atomico en DynamoDB y responde `429` si se supera.
+`POST /uploads` entra por API Gateway HTTP API y dispara una Lambda de ingesta. La Lambda guarda el PDF cifrado en S3, crea un job en DynamoDB y publica en SQS. Una Lambda Processor consume la cola con `PROCESSOR_MAX_CONCURRENCY = 2` desde el event source mapping para respetar el limite de IA y proteger la cuota Lambda de cuentas nuevas/free tier. Processor invoca `AiMock`, valida dinero con centavos enteros y guarda la factura. Si queda `APPROVED`, publica en `ERPQueue`. `ErpDispatcher` consume lotes de hasta 5 mensajes y aplica rate limit de 5 req/s antes de invocar `ErpMock`. El propio `ErpMock` refuerza el limite con un contador atomico en DynamoDB y responde `429` si se supera.
 
 La interfaz web vive en `apps/web` y se despliega como sitio estatico en S3. Puede operar en modo demo local sin AWS o en modo API real usando `VITE_API_BASE_URL`.
 
-El limite de 10 documentos concurrentes hacia la IA se controla en el event source mapping de `ProcessingQueue` hacia Processor con `maxConcurrency: 10`. No se reserva concurrencia directamente en Lambda porque `reservedConcurrentExecutions` puede fallar en cuentas AWS nuevas si reduce la concurrencia no reservada por debajo del minimo permitido.
+El limite academico de IA es 10 documentos concurrentes, pero el MVP usa `maxConcurrency: 2` en `ProcessingQueue` -> Processor como Bulkhead operativo porque es el minimo soportado por Lambda SQS event source maximum concurrency. Ese valor sigue estando por debajo del limite de IA, evita saturar la cuota compartida de Lambda durante los 3 a 5 segundos de AiMock y deja que SQS absorba picos con degradacion graceful. No se reserva concurrencia directamente en Lambda porque `reservedConcurrentExecutions` puede fallar en cuentas AWS nuevas si reduce la concurrencia no reservada por debajo del minimo permitido.
 
 ## Patrones de arquitectura
 
@@ -140,7 +140,8 @@ Si el bucket contiene PDFs, vaciarlo primero o aplicar una politica de lifecycle
 - Respuesta `202` de `POST /uploads` con `trackingId`.
 - Consulta `GET /jobs/{trackingId}` con estado, factura, validacion y eventos.
 - CloudWatch Logs JSON con `trackingId`, `component`, `event`, `status`, `latencyMs`.
-- Metricas de SQS mostrando `QueueDepth` durante carga.
+- Metricas de SQS mostrando `ApproximateNumberOfMessagesVisible` durante carga.
+- Metricas Lambda `Throttles` y `ConcurrentExecutions` para `Ingest`, `Processor` y `AiMock`.
 - Logs de `AiMockLambda` mostrando latencias de 3 a 5 segundos.
 - Logs de `ErpMockLambda` agregados por segundo mostrando maximo 5 req/s.
 - Conteo de `APPROVED` y `REQUIRES_REVIEW` en DynamoDB/AuditLogTable.
